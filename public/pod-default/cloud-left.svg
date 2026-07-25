@@ -1,0 +1,16 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 427 217" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Union" filter="url(#filter0_g_0_54)">
+<path d="M183.5 4C228.586 4 267.003 32.5523 281.656 72.5615C289.709 68.9873 298.622 67 308 67C335.676 67 359.311 84.2975 368.687 108.671C373.63 106.318 379.161 105 385 105C405.987 105 423 122.013 423 143C423 163.987 405.987 181 385 181C375.294 181 366.439 177.359 359.723 171.37C347.848 186.947 329.099 197 308 197C289.925 197 273.574 189.621 261.792 177.713C242.646 199.354 214.667 213 183.5 213C153.599 213 126.633 200.441 107.585 180.312C96.7932 188.285 83.4476 193 69 193C33.1015 193 4 163.899 4 128C4 92.1015 33.1015 63 69 63C75.6379 63 82.0431 63.9957 88.0752 65.8447C104.393 29.3951 140.98 4 183.5 4Z" fill="var(--fill-0, white)" fill-opacity="0.35"/>
+</g>
+<defs>
+<filter id="filter0_g_0_54" x="0" y="0" width="427" height="217" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feTurbulence type="fractalNoise" baseFrequency="0.1428571492433548 0.1428571492433548" numOctaves="3" seed="7153" />
+<feDisplacementMap in="shape" scale="8" xChannelSelector="R" yChannelSelector="G" result="displacedImage" width="100%" height="100%" />
+<feMerge result="effect1_texture_0_54">
+<feMergeNode in="displacedImage"/>
+</feMerge>
+</filter>
+</defs>
+</svg>

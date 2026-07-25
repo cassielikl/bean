@@ -1,0 +1,62 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+html, body, #root {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  background: #1a1a2e;
+}
+
+button, input, textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #feb700;
+  outline-offset: 3px;
+}
+
+.bean-app-stage {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #1a1a2e;
+}
+
+.bean-device {
+  position: relative;
+  width: 390px;
+  height: 844px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 40px;
+  background: white;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+  font-family: 'Inter', system-ui, sans-serif;
+  transform-origin: center;
+}
+
+@media (max-width: 390px), (max-height: 844px) {
+  .bean-device {
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

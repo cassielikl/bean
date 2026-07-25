@@ -1,0 +1,23 @@
+project_id = "bean-mvp"
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[auth]
+enabled = true
+enable_anonymous_sign_ins = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+otp_length = 6
+otp_expiry = 600
+
+[auth.sms]
+enable_signup = true
+enable_confirmations = true
+template = "Your Bean verification code is {{ .Code }}"
+
+[storage]
+enabled = true
