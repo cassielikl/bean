@@ -74,6 +74,18 @@ npm run ios:open
 
 The second command opens the Xcode project. A physical-device or TestFlight build also requires an Apple Developer team, signing configuration, and the Apple capabilities described in [the mobile release checklist](docs/mobile-backend-release.md).
 
+## Mobile web deployment
+
+The Cloudflare Pages project is named `bean-app` and its production preview is available at `https://bean-app.pages.dev`.
+
+After authenticating Wrangler with `npx wrangler login`, deploy the current verified build with:
+
+```bash
+npm run deploy:web
+```
+
+This command builds with the local production environment and uploads only `dist`. Add `bean.cassieliportfolio.com` as a Pages custom domain before creating its Spaceship CNAME record.
+
 ## Project guides
 
 - [User-testing roadmap](docs/user-testing-roadmap.md)
