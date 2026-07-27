@@ -10,6 +10,22 @@ import type {
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
 
+function authErrorMessage(error: unknown, channel: "email" | "phone") {
+  const raw = error && typeof error === "object" ? error as Record<string, unknown> : {};
+  const message = [raw.message, raw.error_description, raw.msg, typeof error === "string" ? error : undefined]
+    .find((value): value is string => typeof value === "string" && value.trim().length > 0)?.trim();
+  const lower = (message || "").toLowerCase();
+
+  if (channel === "phone" && /(sms|twilio|provider|phone)/.test(lower)) {
+    return "Bean couldn't send a text yet. Phone sign-in needs the Twilio SMS provider configured in Supabase. Please try email for now or finish the Twilio setup.";
+  }
+  if (/(rate limit|too many)/.test(lower)) {
+    return "Too many codes were requested. Please wait a few minutes, then try again.";
+  }
+  if (message) return message;
+  return `Bean couldn't send that ${channel === "phone" ? "text" : "email"} code. Please try again.`;
+}
+
 function mapProfile(row: any, isAnonymous: boolean): BackendProfile {
   return {
     id: row.id,
@@ -82,7 +98,7 @@ export class SupabaseBeanBackend implements BeanBackend {
     const { error } = mode === "signin"
       ? await this.db.auth.signInWithOtp({ ...payload, options: { shouldCreateUser: false } } as any)
       : await this.db.auth.updateUser(payload);
-    if (error) throw error;
+    if (error) throw new Error(authErrorMessage(error, channel));
   }
 
   async verifyOtp(channel: "email" | "phone", value: string, token: string, mode: "link" | "signin" = "link") {
@@ -90,7 +106,7 @@ export class SupabaseBeanBackend implements BeanBackend {
       ? { email: value, token, type: (mode === "signin" ? "email" : "email_change") as "email" | "email_change" }
       : { phone: value, token, type: (mode === "signin" ? "sms" : "phone_change") as "sms" | "phone_change" };
     const { error } = await this.db.auth.verifyOtp(params);
-    if (error) throw error;
+    if (error) throw new Error(authErrorMessage(error, channel));
   }
 
   async signOut() { const { error } = await this.db.auth.signOut(); if (error) throw error; }

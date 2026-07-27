@@ -214,6 +214,18 @@ function useDeviceScale() {
 const CTA_YELLOW = "#FEB700";
 const BLUE_TEXT = "#266da9";
 
+function readableError(reason: unknown, fallback: string) {
+  if (reason instanceof Error && reason.message.trim()) return reason.message;
+  if (typeof reason === "string" && reason.trim()) return reason;
+  if (reason && typeof reason === "object") {
+    const record = reason as Record<string, unknown>;
+    for (const candidate of [record.message, record.error_description, record.msg, record.code]) {
+      if (typeof candidate === "string" && candidate.trim() && candidate !== "{}") return candidate;
+    }
+  }
+  return fallback;
+}
+
 function BeanOutfitOverlay({ itemId, size = 54 }: { itemId: string; size?: number }) {
   const item = ITEMS.find((candidate) => candidate.id === itemId && candidate.cat === "outfit");
   if (!item) return null;
@@ -752,7 +764,7 @@ function AccountScreen({ state, setState, onContinue }: {
       if (backend.configured) await backend.requestOtp(channel, normalized, mode);
       setStage("code");
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Bean couldn't send that code. Please try again.");
+      setError(readableError(reason, "Bean couldn't send that code. Please try again."));
     } finally { setBusy(false); }
   };
 
@@ -764,7 +776,7 @@ function AccountScreen({ state, setState, onContinue }: {
       setState((s) => ({ ...s, accountLinked: true, accountSkipped: false }));
       onContinue();
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "That code didn't work. Please check it and try again.");
+      setError(readableError(reason, "That code didn't work. Please check it and try again."));
     } finally { setBusy(false); }
   };
 
@@ -775,11 +787,13 @@ function AccountScreen({ state, setState, onContinue }: {
 
   return (
     <Screen>
-      <div style={{ position: "absolute", inset: 0, overflow: "hidden", background: "linear-gradient(180deg,#83cef1 0 38%,#f7ef79 38% 100%)", fontFamily: "'Inter',sans-serif", padding: "36px 24px" }}>
+      <div style={{ position: "absolute", inset: 0, overflow: "hidden", background: "linear-gradient(180deg,#7ecdf1 0 29%,#ffffff 29% 78%,#a8cf78 78%)", fontFamily: "'Inter',sans-serif", padding: "28px 24px" }}>
+        <div aria-hidden="true" style={{ position: "absolute", left: -42, top: 126, width: 230, height: 105, borderRadius: "55% 55% 40% 40%", background: "rgba(255,255,255,.94)" }} />
+        <div aria-hidden="true" style={{ position: "absolute", right: -64, top: 93, width: 260, height: 145, borderRadius: "58% 58% 40% 40%", background: "rgba(255,255,255,.94)" }} />
         <motion.div animate={{ y: [0,-7,0] }} transition={{ repeat: Infinity, duration: 3 }} style={{ display: "grid", placeItems: "center", height: 155 }}>
           <AnimatedBean size={138} expression="curious" />
         </motion.div>
-        <div style={{ background: "rgba(255,255,255,.96)", borderRadius: 28, padding: "22px 20px", boxShadow: "0 14px 34px rgba(35,78,92,.18)" }}>
+        <div style={{ position: "relative", background: "rgba(255,255,255,.97)", borderRadius: 28, padding: "22px 20px", boxShadow: "0 14px 34px rgba(35,78,92,.18)" }}>
           <h1 style={{ color: BLUE_TEXT, textAlign: "center", fontSize: 23, lineHeight: 1.2, fontWeight: 900 }}>{mode === "link" ? `Keep your adventures with ${state.beanName || "Bean"} safe` : "Welcome back"}</h1>
           <p style={{ color: "#63717a", textAlign: "center", fontSize: 13, lineHeight: 1.45, margin: "8px 0 18px" }}>{mode === "link" ? "Create an account now, or keep exploring and do it later." : "Use the email or phone already connected to your Bean account."}</p>
 
@@ -790,7 +804,7 @@ function AccountScreen({ state, setState, onContinue }: {
           {stage === "details" ? <>
             <label style={{ display: "block", color: "#44545e", fontSize: 12, fontWeight: 800, marginBottom: 6 }}>{channel === "email" ? "Email address" : "Phone number"}</label>
             <input value={value} onChange={(e) => setValue(e.target.value)} type={channel === "email" ? "email" : "tel"} placeholder={channel === "email" ? "you@example.com" : "+1 555 123 4567"} autoComplete={channel === "email" ? "email" : "tel"} style={{ width: "100%", border: "2px solid #dbe6ea", borderRadius: 14, padding: "12px 13px", outline: "none", fontSize: 15, boxSizing: "border-box" }} />
-            {channel === "phone" && <p style={{ color: "#849096", fontSize: 10, marginTop: 5 }}>Include your country code, such as +1.</p>}
+            {channel === "phone" && <p style={{ color: "#607780", fontSize: 10, marginTop: 5, lineHeight: 1.4 }}>Include your country code, such as +1. We’ll text a six-digit code.</p>}
             <motion.button whileTap={{ scale: .97 }} disabled={!valid || busy} onClick={sendCode} style={{ width: "100%", marginTop: 14, border: 0, borderRadius: 100, padding: 12, background: valid ? CTA_YELLOW : "#d8dde0", color: "white", fontWeight: 900, cursor: valid ? "pointer" : "default" }}>{busy ? "Sending…" : "Send my code"}</motion.button>
           </> : <>
             <p style={{ color: "#52616a", fontSize: 12, lineHeight: 1.45, marginBottom: 10 }}>Enter the six-digit code sent to <strong>{normalized}</strong>.</p>
@@ -798,7 +812,7 @@ function AccountScreen({ state, setState, onContinue }: {
             <motion.button whileTap={{ scale: .97 }} disabled={code.length !== 6 || busy} onClick={verify} style={{ width: "100%", marginTop: 14, border: 0, borderRadius: 100, padding: 12, background: code.length === 6 ? CTA_YELLOW : "#d8dde0", color: "white", fontWeight: 900, cursor: code.length === 6 ? "pointer" : "default" }}>{busy ? "Checking…" : "Verify & continue"}</motion.button>
             <button onClick={() => { setStage("details"); setCode(""); }} style={{ display: "block", margin: "10px auto 0", border: 0, background: "transparent", color: BLUE_TEXT, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Use a different {channel}</button>
           </>}
-          {error && <p role="alert" style={{ color: "#b42318", fontSize: 11, marginTop: 9, textAlign: "center" }}>{error}</p>}
+          {error && <p role="alert" style={{ color: "#b42318", fontSize: 11, lineHeight: 1.35, marginTop: 9, textAlign: "center" }}>{error}</p>}
           {!backend.configured && stage === "code" && <p style={{ color: "#7c6985", background: "#f5ebfa", borderRadius: 10, padding: 8, fontSize: 10, marginTop: 9, textAlign: "center" }}>Preview mode: enter any six digits. Connect Supabase to send real codes.</p>}
           <button onClick={skip} style={{ width: "100%", border: 0, background: "transparent", color: "#68767d", padding: "13px 0 0", fontWeight: 700, cursor: "pointer" }}>Not now</button>
           <button onClick={() => { setMode((current) => current === "link" ? "signin" : "link"); setStage("details"); setCode(""); setError(""); }} style={{ width: "100%", border: 0, background: "transparent", color: BLUE_TEXT, padding: "8px 0 0", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>{mode === "link" ? "Already have an account? Sign in" : "New here? Create an account"}</button>
