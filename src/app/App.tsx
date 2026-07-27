@@ -18,6 +18,7 @@ import { connectCalendar, connectHealth, connectNotifications, disconnectDeviceC
 import FigmaBeanBody from "@/imports/Group37-1"; // exact pink Bean (same shape as home screen)
 import questHomeFrame from "@/assets/quest-figma/quest-home.png";
 import questInputFrame from "@/assets/quest-figma/quest-input.png";
+import questCloudBackground from "@/assets/quest-figma/quest-cloud-background.png";
 import questDailyRewardFrame from "@/assets/quest-figma/quest-daily-reward.png";
 import questCompleteFrame from "@/assets/quest-figma/quest-complete.png";
 import questBonusInputFrame from "@/assets/quest-figma/quest-bonus-input.png";
@@ -787,13 +788,13 @@ function AccountScreen({ state, setState, onContinue }: {
 
   return (
     <Screen>
-      <div style={{ position: "absolute", inset: 0, overflow: "hidden", background: "linear-gradient(180deg,#7ecdf1 0 29%,#ffffff 29% 78%,#a8cf78 78%)", fontFamily: "'Inter',sans-serif", padding: "28px 24px" }}>
-        <div aria-hidden="true" style={{ position: "absolute", left: -42, top: 126, width: 230, height: 105, borderRadius: "55% 55% 40% 40%", background: "rgba(255,255,255,.94)" }} />
-        <div aria-hidden="true" style={{ position: "absolute", right: -64, top: 93, width: 260, height: 145, borderRadius: "58% 58% 40% 40%", background: "rgba(255,255,255,.94)" }} />
-        <motion.div animate={{ y: [0,-7,0] }} transition={{ repeat: Infinity, duration: 3 }} style={{ display: "grid", placeItems: "center", height: 155 }}>
+      <div style={{ position: "absolute", inset: 0, overflow: "hidden", background: "#fff", fontFamily: "'Inter',sans-serif", padding: "28px 24px" }}>
+        <img src={questCloudBackground} aria-hidden="true" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", pointerEvents: "none" }} />
+        <motion.div animate={{ y: [0,-7,0] }} transition={{ repeat: Infinity, duration: 3 }} style={{ position: "relative", display: "grid", placeItems: "center", height: 155 }}>
           <AnimatedBean size={138} expression="curious" />
         </motion.div>
-        <div style={{ position: "relative", background: "rgba(255,255,255,.97)", borderRadius: 28, padding: "22px 20px", boxShadow: "0 14px 34px rgba(35,78,92,.18)" }}>
+        <div style={{ position: "relative", background: "rgba(254,209,87,.20)", borderRadius: 28, padding: "22px 20px", boxShadow: "0 14px 34px rgba(35,78,92,.12)" }}>
+          <div style={{ background: "rgba(255,255,255,.96)", borderRadius: 22, padding: "18px 16px" }}>
           <h1 style={{ color: BLUE_TEXT, textAlign: "center", fontSize: 23, lineHeight: 1.2, fontWeight: 900 }}>{mode === "link" ? `Keep your adventures with ${state.beanName || "Bean"} safe` : "Welcome back"}</h1>
           <p style={{ color: "#63717a", textAlign: "center", fontSize: 13, lineHeight: 1.45, margin: "8px 0 18px" }}>{mode === "link" ? "Create an account now, or keep exploring and do it later." : "Use the email or phone already connected to your Bean account."}</p>
 
@@ -816,8 +817,9 @@ function AccountScreen({ state, setState, onContinue }: {
           {!backend.configured && stage === "code" && <p style={{ color: "#7c6985", background: "#f5ebfa", borderRadius: 10, padding: 8, fontSize: 10, marginTop: 9, textAlign: "center" }}>Preview mode: enter any six digits. Connect Supabase to send real codes.</p>}
           <button onClick={skip} style={{ width: "100%", border: 0, background: "transparent", color: "#68767d", padding: "13px 0 0", fontWeight: 700, cursor: "pointer" }}>Not now</button>
           <button onClick={() => { setMode((current) => current === "link" ? "signin" : "link"); setStage("details"); setCode(""); setError(""); }} style={{ width: "100%", border: 0, background: "transparent", color: BLUE_TEXT, padding: "8px 0 0", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>{mode === "link" ? "Already have an account? Sign in" : "New here? Create an account"}</button>
+          </div>
         </div>
-        <p style={{ textAlign: "center", color: "#6e6b45", fontSize: 10, lineHeight: 1.35, marginTop: 12 }}>Without an email or phone, progress may be lost if this browser’s data is cleared.</p>
+        <p style={{ position: "relative", textAlign: "center", color: "#6e6b45", fontSize: 10, lineHeight: 1.35, marginTop: 12 }}>Without an email or phone, progress may be lost if this browser’s data is cleared.</p>
       </div>
     </Screen>
   );
