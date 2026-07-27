@@ -747,7 +747,7 @@ function AccountScreen({ state, setState, onContinue }: {
   setState: React.Dispatch<React.SetStateAction<AppState>>;
   onContinue: () => void;
 }) {
-  const [channel, setChannel] = useState<"email" | "phone">("email");
+  const channel = "email" as const;
   const [value, setValue] = useState("");
   const [code, setCode] = useState("");
   const [stage, setStage] = useState<"details" | "code">("details");
@@ -755,8 +755,8 @@ function AccountScreen({ state, setState, onContinue }: {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const normalized = channel === "email" ? value.trim().toLowerCase() : value.replace(/[^+\d]/g, "");
-  const valid = channel === "email" ? /^\S+@\S+\.\S+$/.test(normalized) : /^\+[1-9]\d{7,14}$/.test(normalized);
+  const normalized = value.trim().toLowerCase();
+  const valid = /^\S+@\S+\.\S+$/.test(normalized);
 
   const sendCode = async () => {
     if (!valid) return;
@@ -788,7 +788,7 @@ function AccountScreen({ state, setState, onContinue }: {
 
   return (
     <Screen>
-      <div style={{ position: "absolute", inset: 0, overflow: "hidden", background: "#fff", fontFamily: "'Inter',sans-serif", padding: "28px 24px" }}>
+      <div style={{ position: "absolute", inset: 0, overflow: "hidden", background: "#74cefe", fontFamily: "'Inter',sans-serif", padding: "28px 24px" }}>
         <img src={questCloudBackground} aria-hidden="true" alt="" style={{ position: "absolute", left: 0, top: 72, width: "100%", height: "calc(100% - 72px)", objectFit: "cover", objectPosition: "top center", pointerEvents: "none" }} />
         <div aria-hidden="true" style={{ position: "relative", height: 155 }} />
         <div style={{ position: "relative", background: "rgba(254,209,87,.20)", borderRadius: 28, padding: "22px 20px", boxShadow: "0 14px 34px rgba(35,78,92,.12)" }}>
@@ -796,20 +796,15 @@ function AccountScreen({ state, setState, onContinue }: {
           <h1 style={{ color: BLUE_TEXT, textAlign: "center", fontSize: 23, lineHeight: 1.2, fontWeight: 900 }}>{mode === "link" ? `Keep your adventures with ${state.beanName || "Bean"} safe` : "Welcome back"}</h1>
           <p style={{ color: "#63717a", textAlign: "center", fontSize: 13, lineHeight: 1.45, margin: "8px 0 18px" }}>{mode === "link" ? "Create an account now, or keep exploring and do it later." : "Use the email or phone already connected to your Bean account."}</p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7, background: "#edf3f5", borderRadius: 14, padding: 4, marginBottom: 14 }}>
-            {(["email","phone"] as const).map((item) => <button key={item} onClick={() => { setChannel(item); setStage("details"); setCode(""); setError(""); }} style={{ border: 0, borderRadius: 11, padding: 9, background: channel === item ? "white" : "transparent", color: channel === item ? BLUE_TEXT : "#76848b", fontWeight: 800, cursor: "pointer", boxShadow: channel === item ? "0 2px 7px #0001" : "none" }}>{item === "email" ? "Email" : "Phone"}</button>)}
-          </div>
-
           {stage === "details" ? <>
-            <label style={{ display: "block", color: "#44545e", fontSize: 12, fontWeight: 800, marginBottom: 6 }}>{channel === "email" ? "Email address" : "Phone number"}</label>
-            <input value={value} onChange={(e) => setValue(e.target.value)} type={channel === "email" ? "email" : "tel"} placeholder={channel === "email" ? "you@example.com" : "+1 555 123 4567"} autoComplete={channel === "email" ? "email" : "tel"} style={{ width: "100%", border: "2px solid #dbe6ea", borderRadius: 14, padding: "12px 13px", outline: "none", fontSize: 15, boxSizing: "border-box" }} />
-            {channel === "phone" && <p style={{ color: "#607780", fontSize: 10, marginTop: 5, lineHeight: 1.4 }}>Include your country code, such as +1. We’ll text a six-digit code.</p>}
+            <label style={{ display: "block", color: "#44545e", fontSize: 12, fontWeight: 800, marginBottom: 6 }}>Email address</label>
+            <input value={value} onChange={(e) => setValue(e.target.value)} type="email" placeholder="you@example.com" autoComplete="email" style={{ width: "100%", border: "2px solid #dbe6ea", borderRadius: 14, padding: "12px 13px", outline: "none", fontSize: 15, boxSizing: "border-box" }} />
             <motion.button whileTap={{ scale: .97 }} disabled={!valid || busy} onClick={sendCode} style={{ width: "100%", marginTop: 14, border: 0, borderRadius: 100, padding: 12, background: valid ? CTA_YELLOW : "#d8dde0", color: "white", fontWeight: 900, cursor: valid ? "pointer" : "default" }}>{busy ? "Sending…" : "Send my code"}</motion.button>
           </> : <>
             <p style={{ color: "#52616a", fontSize: 12, lineHeight: 1.45, marginBottom: 10 }}>Enter the six-digit code sent to <strong>{normalized}</strong>.</p>
             <input value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0,6))} inputMode="numeric" autoComplete="one-time-code" placeholder="000000" style={{ width: "100%", border: "2px solid #dbe6ea", borderRadius: 14, padding: "12px", textAlign: "center", letterSpacing: 8, fontSize: 22, fontWeight: 800, boxSizing: "border-box" }} />
             <motion.button whileTap={{ scale: .97 }} disabled={code.length !== 6 || busy} onClick={verify} style={{ width: "100%", marginTop: 14, border: 0, borderRadius: 100, padding: 12, background: code.length === 6 ? CTA_YELLOW : "#d8dde0", color: "white", fontWeight: 900, cursor: code.length === 6 ? "pointer" : "default" }}>{busy ? "Checking…" : "Verify & continue"}</motion.button>
-            <button onClick={() => { setStage("details"); setCode(""); }} style={{ display: "block", margin: "10px auto 0", border: 0, background: "transparent", color: BLUE_TEXT, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Use a different {channel}</button>
+            <button onClick={() => { setStage("details"); setCode(""); }} style={{ display: "block", margin: "10px auto 0", border: 0, background: "transparent", color: BLUE_TEXT, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Use a different email</button>
           </>}
           {error && <p role="alert" style={{ color: "#b42318", fontSize: 11, lineHeight: 1.35, marginTop: 9, textAlign: "center" }}>{error}</p>}
           {!backend.configured && stage === "code" && <p style={{ color: "#7c6985", background: "#f5ebfa", borderRadius: 10, padding: 8, fontSize: 10, marginTop: 9, textAlign: "center" }}>Preview mode: enter any six digits. Connect Supabase to send real codes.</p>}
@@ -817,7 +812,7 @@ function AccountScreen({ state, setState, onContinue }: {
           <button onClick={() => { setMode((current) => current === "link" ? "signin" : "link"); setStage("details"); setCode(""); setError(""); }} style={{ width: "100%", border: 0, background: "transparent", color: BLUE_TEXT, padding: "8px 0 0", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>{mode === "link" ? "Already have an account? Sign in" : "New here? Create an account"}</button>
           </div>
         </div>
-        <p style={{ position: "relative", textAlign: "center", color: "#6e6b45", fontSize: 10, lineHeight: 1.35, marginTop: 12 }}>Without an email or phone, progress may be lost if this browser’s data is cleared.</p>
+        <p style={{ position: "relative", textAlign: "center", color: "#6e6b45", fontSize: 10, lineHeight: 1.35, marginTop: 12 }}>Without an email, progress may be lost if this browser’s data is cleared.</p>
       </div>
     </Screen>
   );

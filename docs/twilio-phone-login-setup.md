@@ -1,4 +1,6 @@
-# Twilio phone login setup
+# Twilio phone login setup (deferred)
+
+Phone login is intentionally hidden from the Bean user-testing app while email OTP is the only sign-in method. Keep this guide only as a future reference if SMS login becomes necessary after testing.
 
 Bean uses Supabase Auth to issue six-digit phone verification codes. Supabase sends the SMS through Twilio; the Twilio secret values stay in the Supabase dashboard and must never be added to this repository or to `VITE_` environment variables.
 
