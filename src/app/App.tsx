@@ -749,8 +749,7 @@ function AccountScreen({ state, setState, onContinue }: {
 }) {
   const channel = "email" as const;
   const [value, setValue] = useState("");
-  const [code, setCode] = useState("");
-  const [stage, setStage] = useState<"details" | "code">("details");
+  const [stage, setStage] = useState<"details" | "sent">("details");
   const [mode, setMode] = useState<"link" | "signin">("link");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -763,21 +762,24 @@ function AccountScreen({ state, setState, onContinue }: {
     setBusy(true); setError("");
     try {
       if (backend.configured) await backend.requestOtp(channel, normalized, mode);
-      setStage("code");
+      setStage("sent");
     } catch (reason) {
-      setError(readableError(reason, "Bean couldn't send that code. Please try again."));
+      setError(readableError(reason, "Bean couldn't send that email link. Please try again."));
     } finally { setBusy(false); }
   };
 
-  const verify = async () => {
-    if (!/^\d{6}$/.test(code)) return;
+  const confirmReturn = async () => {
     setBusy(true); setError("");
     try {
-      if (backend.configured) await backend.verifyOtp(channel, normalized, code, mode);
-      setState((s) => ({ ...s, accountLinked: true, accountSkipped: false }));
-      onContinue();
+      const profile = backend.configured ? await backend.bootstrap() : null;
+      if (!backend.configured || (profile && !profile.isAnonymous)) {
+        setState((s) => ({ ...s, accountLinked: true, accountSkipped: false }));
+        onContinue();
+      } else {
+        setError("We’re still waiting for the email link. Open it, then come back here.");
+      }
     } catch (reason) {
-      setError(readableError(reason, "That code didn't work. Please check it and try again."));
+      setError(readableError(reason, "Bean couldn’t confirm the link yet. Please open the email link and try again."));
     } finally { setBusy(false); }
   };
 
@@ -794,22 +796,23 @@ function AccountScreen({ state, setState, onContinue }: {
         <div style={{ position: "relative", background: "rgba(254,209,87,.20)", borderRadius: 28, padding: "22px 20px", boxShadow: "0 14px 34px rgba(35,78,92,.12)" }}>
           <div style={{ background: "rgba(255,255,255,.96)", borderRadius: 22, padding: "18px 16px" }}>
           <h1 style={{ color: BLUE_TEXT, textAlign: "center", fontSize: 23, lineHeight: 1.2, fontWeight: 900 }}>{mode === "link" ? `Keep your adventures with ${state.beanName || "Bean"} safe` : "Welcome back"}</h1>
-          <p style={{ color: "#63717a", textAlign: "center", fontSize: 13, lineHeight: 1.45, margin: "8px 0 18px" }}>{mode === "link" ? "Create an account now, or keep exploring and do it later." : "Use the email or phone already connected to your Bean account."}</p>
+          <p style={{ color: "#63717a", textAlign: "center", fontSize: 13, lineHeight: 1.45, margin: "8px 0 18px" }}>{mode === "link" ? "Create an account now, or keep exploring and do it later." : "Use the email already connected to your Bean account."}</p>
 
           {stage === "details" ? <>
             <label style={{ display: "block", color: "#44545e", fontSize: 12, fontWeight: 800, marginBottom: 6 }}>Email address</label>
             <input value={value} onChange={(e) => setValue(e.target.value)} type="email" placeholder="you@example.com" autoComplete="email" style={{ width: "100%", border: "2px solid #dbe6ea", borderRadius: 14, padding: "12px 13px", outline: "none", fontSize: 15, boxSizing: "border-box" }} />
-            <motion.button whileTap={{ scale: .97 }} disabled={!valid || busy} onClick={sendCode} style={{ width: "100%", marginTop: 14, border: 0, borderRadius: 100, padding: 12, background: valid ? CTA_YELLOW : "#d8dde0", color: "white", fontWeight: 900, cursor: valid ? "pointer" : "default" }}>{busy ? "Sending…" : "Send my code"}</motion.button>
+            <motion.button whileTap={{ scale: .97 }} disabled={!valid || busy} onClick={sendCode} style={{ width: "100%", marginTop: 14, border: 0, borderRadius: 100, padding: 12, background: valid ? CTA_YELLOW : "#d8dde0", color: "white", fontWeight: 900, cursor: valid ? "pointer" : "default" }}>{busy ? "Sending…" : "Send my link"}</motion.button>
           </> : <>
-            <p style={{ color: "#52616a", fontSize: 12, lineHeight: 1.45, marginBottom: 10 }}>Enter the six-digit code sent to <strong>{normalized}</strong>.</p>
-            <input value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0,6))} inputMode="numeric" autoComplete="one-time-code" placeholder="000000" style={{ width: "100%", border: "2px solid #dbe6ea", borderRadius: 14, padding: "12px", textAlign: "center", letterSpacing: 8, fontSize: 22, fontWeight: 800, boxSizing: "border-box" }} />
-            <motion.button whileTap={{ scale: .97 }} disabled={code.length !== 6 || busy} onClick={verify} style={{ width: "100%", marginTop: 14, border: 0, borderRadius: 100, padding: 12, background: code.length === 6 ? CTA_YELLOW : "#d8dde0", color: "white", fontWeight: 900, cursor: code.length === 6 ? "pointer" : "default" }}>{busy ? "Checking…" : "Verify & continue"}</motion.button>
-            <button onClick={() => { setStage("details"); setCode(""); }} style={{ display: "block", margin: "10px auto 0", border: 0, background: "transparent", color: BLUE_TEXT, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Use a different email</button>
+            <h2 style={{ color: BLUE_TEXT, textAlign: "center", fontSize: 19, margin: "2px 0 9px" }}>Check your email</h2>
+            <p style={{ color: "#52616a", fontSize: 13, lineHeight: 1.5, margin: "0 0 14px", textAlign: "center" }}>We sent a secure sign-in link to <strong>{normalized}</strong>. Tap it, then return to Bean.</p>
+            <motion.button whileTap={{ scale: .97 }} disabled={busy} onClick={confirmReturn} style={{ width: "100%", border: 0, borderRadius: 100, padding: 12, background: CTA_YELLOW, color: "white", fontWeight: 900, cursor: busy ? "wait" : "pointer" }}>{busy ? "Checking…" : "I opened the link"}</motion.button>
+            <button onClick={() => setStage("details")} style={{ display: "block", margin: "10px auto 0", border: 0, background: "transparent", color: BLUE_TEXT, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Use a different email</button>
+            <button disabled={busy} onClick={sendCode} style={{ display: "block", margin: "6px auto 0", border: 0, background: "transparent", color: "#68767d", fontSize: 11, fontWeight: 700, cursor: busy ? "wait" : "pointer" }}>Resend link</button>
           </>}
           {error && <p role="alert" style={{ color: "#b42318", fontSize: 11, lineHeight: 1.35, marginTop: 9, textAlign: "center" }}>{error}</p>}
-          {!backend.configured && stage === "code" && <p style={{ color: "#7c6985", background: "#f5ebfa", borderRadius: 10, padding: 8, fontSize: 10, marginTop: 9, textAlign: "center" }}>Preview mode: enter any six digits. Connect Supabase to send real codes.</p>}
+          {!backend.configured && stage === "sent" && <p style={{ color: "#7c6985", background: "#f5ebfa", borderRadius: 10, padding: 8, fontSize: 10, marginTop: 9, textAlign: "center" }}>Preview mode: no email was sent. Tap “I opened the link” to continue.</p>}
           <button onClick={skip} style={{ width: "100%", border: 0, background: "transparent", color: "#68767d", padding: "13px 0 0", fontWeight: 700, cursor: "pointer" }}>Not now</button>
-          <button onClick={() => { setMode((current) => current === "link" ? "signin" : "link"); setStage("details"); setCode(""); setError(""); }} style={{ width: "100%", border: 0, background: "transparent", color: BLUE_TEXT, padding: "8px 0 0", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>{mode === "link" ? "Already have an account? Sign in" : "New here? Create an account"}</button>
+          <button onClick={() => { setMode((current) => current === "link" ? "signin" : "link"); setStage("details"); setError(""); }} style={{ width: "100%", border: 0, background: "transparent", color: BLUE_TEXT, padding: "8px 0 0", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>{mode === "link" ? "Already have an account? Sign in" : "New here? Create an account"}</button>
           </div>
         </div>
         <p style={{ position: "relative", textAlign: "center", color: "#6e6b45", fontSize: 10, lineHeight: 1.35, marginTop: 12 }}>Without an email, progress may be lost if this browser’s data is cleared.</p>
@@ -2342,7 +2345,9 @@ export default function App() {
         if (!active || !profile) return;
         const hydratedObservations = await Promise.all(observations.map(async (item) => ({ ...item, media: await Promise.all(item.media.map(async (media) => ({ kind: media.kind, url: await backend.createMediaUrl(media.storagePath), mimeType: media.mimeType }))) })));
         if (!active) return;
-        setState((current) => ({ ...current, screen: SCREEN_IDS.has(profile.onboardingScreen as ScreenId) ? profile.onboardingScreen as ScreenId : "home", userName: profile.userName || current.userName, beanName: profile.beanName || current.beanName, tutorialStep: profile.tutorialStep, tokens: profile.tokens, accountLinked: !profile.isAnonymous, observations: hydratedObservations.length ? hydratedObservations.map((item) => ({ id: item.id, prompt: item.prompt, text: item.body, createdAt: item.createdAt, category: item.category, emoji: item.emoji, hasPhoto: item.hasPhoto, hasVoice: item.hasVoice, media: item.media, flowerSpeciesId: item.classification?.flowerSpeciesId })) : current.observations, memorySeeds: seeds.length ? seeds.map((seed) => ({ id: seed.id, observationId: seed.observationId, plantedAt: seed.plantedAt, harvestedAt: seed.harvestedAt })) : current.memorySeeds, seeds: seeds.length ? seeds.filter((seed) => !seed.plantedAt).length : current.seeds, equipped: { outfit: profile.equippedOutfit, face: profile.equippedFace || current.equipped.face || "none", background: profile.equippedBackdrop }, storeItems: inventory.length ? Object.fromEntries(inventory.map((id) => [id, true])) : current.storeItems, gardenPlacements: placements.length ? placements.map((placement) => ({ id: placement.id, itemId: placement.itemId, kind: placement.kind, slot: GARDEN_SLOTS.reduce((best, candidate, index) => Math.abs(candidate.left / 390 - placement.x) + Math.abs(candidate.top / 844 - placement.y) < best.distance ? { index, distance: Math.abs(candidate.left / 390 - placement.x) + Math.abs(candidate.top / 844 - placement.y) } : best, { index: 0, distance: Number.POSITIVE_INFINITY }).index })) : current.gardenPlacements, syncError: "" }));
+        const savedScreen = SCREEN_IDS.has(profile.onboardingScreen as ScreenId) ? profile.onboardingScreen as ScreenId : "home";
+        const resumedScreen = !profile.isAnonymous && savedScreen === "account" ? (profile.tutorialStep > 0 ? "home" : "quest") : savedScreen;
+        setState((current) => ({ ...current, screen: resumedScreen, userName: profile.userName || current.userName, beanName: profile.beanName || current.beanName, tutorialStep: profile.tutorialStep, tokens: profile.tokens, accountLinked: !profile.isAnonymous, observations: hydratedObservations.length ? hydratedObservations.map((item) => ({ id: item.id, prompt: item.prompt, text: item.body, createdAt: item.createdAt, category: item.category, emoji: item.emoji, hasPhoto: item.hasPhoto, hasVoice: item.hasVoice, media: item.media, flowerSpeciesId: item.classification?.flowerSpeciesId })) : current.observations, memorySeeds: seeds.length ? seeds.map((seed) => ({ id: seed.id, observationId: seed.observationId, plantedAt: seed.plantedAt, harvestedAt: seed.harvestedAt })) : current.memorySeeds, seeds: seeds.length ? seeds.filter((seed) => !seed.plantedAt).length : current.seeds, equipped: { outfit: profile.equippedOutfit, face: profile.equippedFace || current.equipped.face || "none", background: profile.equippedBackdrop }, storeItems: inventory.length ? Object.fromEntries(inventory.map((id) => [id, true])) : current.storeItems, gardenPlacements: placements.length ? placements.map((placement) => ({ id: placement.id, itemId: placement.itemId, kind: placement.kind, slot: GARDEN_SLOTS.reduce((best, candidate, index) => Math.abs(candidate.left / 390 - placement.x) + Math.abs(candidate.top / 844 - placement.y) < best.distance ? { index, distance: Math.abs(candidate.left / 390 - placement.x) + Math.abs(candidate.top / 844 - placement.y) } : best, { index: 0, distance: Number.POSITIVE_INFINITY }).index })) : current.gardenPlacements, syncError: "" }));
       } catch (reason) { if (active) setState((current) => ({ ...current, syncError: reason instanceof Error ? reason.message : "Bean is working offline." })); }
       finally { if (active) setBackendReady(true); }
     })();
