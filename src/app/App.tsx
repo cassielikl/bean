@@ -789,10 +789,8 @@ function AccountScreen({ state, setState, onContinue }: {
   return (
     <Screen>
       <div style={{ position: "absolute", inset: 0, overflow: "hidden", background: "#fff", fontFamily: "'Inter',sans-serif", padding: "28px 24px" }}>
-        <img src={questCloudBackground} aria-hidden="true" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", pointerEvents: "none" }} />
-        <motion.div animate={{ y: [0,-7,0] }} transition={{ repeat: Infinity, duration: 3 }} style={{ position: "relative", display: "grid", placeItems: "center", height: 155 }}>
-          <AnimatedBean size={138} expression="curious" />
-        </motion.div>
+        <img src={questCloudBackground} aria-hidden="true" alt="" style={{ position: "absolute", left: 0, top: 72, width: "100%", height: "calc(100% - 72px)", objectFit: "cover", objectPosition: "top center", pointerEvents: "none" }} />
+        <div aria-hidden="true" style={{ position: "relative", height: 155 }} />
         <div style={{ position: "relative", background: "rgba(254,209,87,.20)", borderRadius: 28, padding: "22px 20px", boxShadow: "0 14px 34px rgba(35,78,92,.12)" }}>
           <div style={{ background: "rgba(255,255,255,.96)", borderRadius: 22, padding: "18px 16px" }}>
           <h1 style={{ color: BLUE_TEXT, textAlign: "center", fontSize: 23, lineHeight: 1.2, fontWeight: 900 }}>{mode === "link" ? `Keep your adventures with ${state.beanName || "Bean"} safe` : "Welcome back"}</h1>
